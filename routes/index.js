@@ -1,0 +1,12 @@
+const express = require('express')
+const router = express.Router()
+
+router.get('/', (req, res) => {
+    res.end("Hello")
+})
+
+router.get('/customers', (req, res) => {
+    res.end('Customers')
+})
+
+module.exports = router
