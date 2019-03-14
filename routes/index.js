@@ -5,8 +5,6 @@ router.get('/', (req, res) => {
     res.end("Hello")
 })
 
-router.get('/customers', (req, res) => {
-    res.end('Customers')
-})
+// router.get('/books', (req, res) => {     res.end('Books') })
 
 module.exports = router
