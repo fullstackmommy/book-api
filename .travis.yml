@@ -1,10 +1,10 @@
 language: node_js
 node_js:
-- 11.9.0
+  - 11.9.0
 deploy:
   provider: heroku
   api_key:
     secure: KztTQlt8QJt0gKLyrdeAZQQDj3CHT74XSJOF3yRnqYOpqtbgtNw9MZEFZRgREfxmKNrO4Bv3KLVFelBL1KM4IAj2fRYCVuKrxUCMwlDaecZylbhYyV1J0/B/4bOJT01a94klVXk8gYqpvP3CKN79TnFQuF01I0x7wQV7u7CKPVsWuReD+sxLyAnHnO09JAD+HYMph4JgO6Epfm2ilxo4fIS999qySIYvHJrvw8cJP11IbGkfLq0ghPW4RpZGGijfSGzyPzWEvsXxlMaQpnwPr5K7ofxUHeaqm3jnvYrBu8UckHpcJTD/7tARD12dpyxqD46VSMggjxMNRBKtoGpP8/Kwz/bO8SdfJv2I/rkBTCQul4V1oT6KvD9VDdIaaDDpF8g22ljKOQKbcyp4hxB7AhoyKd7dZHaGPA0aaMQEXhq3rnAuMAEle2kjak0cQ1riLHLRMKfT9rGs0GYV5rCYR+P08i+aY7kE0txHiWIM8DW9uP87Oqe6zXAljxnfX2l1BV5qHuXbyjWBlDSMv4lUUGIuIZ2Mh98BkkjGQk3MiuHVTRnw2XTg/o6ESHQBiKaipBtIaUY8WYs/GgMevYIuGqPlc93R2KEpW+KLzV0OSLGoG2p1+j0JRWlbTvjbzMRjAI7t/AsQzE2h6YcSPuA5pupCQ5xI7nuGDC4EwtVbsL0=
-  app: book-api-sandbox
+  app: books-api-sandbox
   on:
     repo: fullstackmommy/book-api
