@@ -48,17 +48,14 @@ router
          const keys = Object.keys(req.query)
 
          const filteredBooks = books.filter(book => keys.some(key => book[key] === req.query[key]))
-         if (filteredBooks) {
+         if (filteredBooks.length === 0) {
+            res.status(200)
+            res.send('No book found')
+         } else {
             res.status(200)
             res.json(filteredBooks)
-         } else { //TODO: add scenario when not found
-            res.send("No book found")
          }
-
       }
-
-      // for (const key of keys) {    filteredBooks = filteredBooks.filter(book =>
-      // book[key].toLowerCase().includes(req.query[key].toLowerCase())) }
 
    })
    .post(verifyToken, (req, res) => {
