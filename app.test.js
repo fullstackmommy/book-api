@@ -6,6 +6,5 @@ describe('App', () => {
         return request(app)
             .get('/')
             .expect(200)
-            .expect('Hello')
     });
 });

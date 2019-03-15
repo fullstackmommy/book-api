@@ -28,7 +28,7 @@ const bookData = [
 ]
 
 describe('Books', () => {
-    describe('/books', () => {
+    describe('GET', () => {
         const route = "/books"
         test("Gets all books", () => {
             return request(app)
@@ -38,28 +38,33 @@ describe('Books', () => {
                 .expect(bookData)
         })
 
-        test("Get the book with matching title", () => {
+        test("Get the books matching the title", () => {
             const title = "ABC"
             const foundBook = bookData.filter(book => book.title === title)
 
             return request(app)
-                .get(`${route}?title=${title}`)
+                .get(route)
+                .query({title: "ABC"})
                 .expect(200)
                 .expect("Content-Type", /json/)
                 .expect(foundBook)
         })
 
-        test("Get the book with matching author", () => {
+        test("Get the books matching the author", () => {
             const author = "John"
             const foundBook = bookData.filter(book => book.author === author)
 
             return request(app)
-                .get(`${route}?author=${author}`)
+                .get(route)
+                .query({author: "John"})
                 .expect(200)
                 .expect("Content-Type", /json/)
                 .expect(foundBook)
         })
+    });
 
+    describe('POST', () => {
+        const route = "/books"
         test("Create a new book, deny access when no token is given ", () => {
             return request(app)
                 .post(route)
@@ -96,9 +101,11 @@ describe('Books', () => {
                 })
         })
     })
-    describe("/books/1", () => {
-        const route = "/books/1"
-        test("Update a book's record based on ID", () => {
+
+    describe("PUT", () => {
+
+        test("Update a book's record based on ID, book is found", () => {
+            const route = "/books/1"
             return request(app)
                 .put(route)
                 .send({title: "New Title"})
@@ -106,17 +113,28 @@ describe('Books', () => {
                 .expect({title: "New Title"})
         })
 
+        test("Update a book's record based on ID, book is not found", () => {
+            const route = "/books/100"
+            return request(app)
+                .put(route)
+                .send({title: "New Title"})
+                .expect(202)
+                .catch(res => {
+                    expect(res.status).toBe(400)
+                })
+        })
+
+    })
+    describe("DELETE", () => {
         test("Delete a book's record based on ID", () => {
+            const route = "/books/1"
             return request(app)
                 .delete(route)
                 .expect(202)
         })
 
-    })
-
-    describe("[DELETE] ", () => {
-        const route = "/books/100"
         test("Delete a book's record based on ID, record not found", () => {
+            const route = "/books/100"
             return request(app)
                 .delete(route)
                 .ok(res => res.status === 400)
@@ -124,5 +142,6 @@ describe('Books', () => {
                     expect(res.status).toBe(400)
                 })
         })
-    })
+    });
+
 });
