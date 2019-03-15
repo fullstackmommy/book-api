@@ -41,25 +41,40 @@ verifyToken = (req, res, next) => {
 
 router
    .route('/')
-   .get((req, res, next) => {
+   .get((req, res) => {
+      if (Object.entries(req.query).length === 0) {
+         res.json(books)
+      } else {
+         const keys = Object.keys(req.query)
 
-      let filteredBooks = books
-      for (const key in req.query) {
-         filteredBooks = filteredBooks.filter(book => book[key].toLowerCase().includes(req.query[key].toLowerCase()))
+         const filteredBooks = books.filter(book => keys.some(key => book[key] === req.query[key]))
+         if (filteredBooks) {
+            res.status(200)
+            res.json(filteredBooks)
+         } else { //TODO: add scenario when not found
+            res.send("No book found")
+         }
+
       }
-      res.json(filteredBooks)
+
+      // for (const key of keys) {    filteredBooks = filteredBooks.filter(book =>
+      // book[key].toLowerCase().includes(req.query[key].toLowerCase())) }
+
    })
    .post(verifyToken, (req, res) => {
       const book = req.body
       book.id = '214214214'
+      books.push(book)
       res
          .status(201)
          .json(req.body)
    })
 
+// Protected routes:
+router.use(verifyToken)
 router
    .route('/:id')
-   .put((req, res, next) => {
+   .put((req, res) => {
       const book = books.find(book => book.id === req.params.id)
       if (book) {
          res

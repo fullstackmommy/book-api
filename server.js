@@ -1,6 +1,10 @@
 const app = require('./app')
-const port = 8080
+const port = process.env.PORT || 8080
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`)
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`Server is running on Heroku with port number ${port}`)
+    } else {
+        console.log(`Server is running on http://localhost:${port}`)
+    }
 })

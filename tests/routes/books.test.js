@@ -61,6 +61,7 @@ describe('Books', () => {
                 .expect("Content-Type", /json/)
                 .expect(foundBook)
         })
+
     });
 
     describe('POST', () => {
@@ -108,6 +109,7 @@ describe('Books', () => {
             const route = "/books/1"
             return request(app)
                 .put(route)
+                .set("Authorization", "Bearer my-token")
                 .send({title: "New Title"})
                 .expect(202)
                 .expect({title: "New Title"})
@@ -117,8 +119,9 @@ describe('Books', () => {
             const route = "/books/100"
             return request(app)
                 .put(route)
+                .set("Authorization", "Bearer my-token")
                 .send({title: "New Title"})
-                .expect(202)
+                //.expect(202)
                 .catch(res => {
                     expect(res.status).toBe(400)
                 })
@@ -130,6 +133,7 @@ describe('Books', () => {
             const route = "/books/1"
             return request(app)
                 .delete(route)
+                .set("Authorization", "Bearer my-token")
                 .expect(202)
         })
 
@@ -137,6 +141,7 @@ describe('Books', () => {
             const route = "/books/100"
             return request(app)
                 .delete(route)
+                .set("Authorization", "Bearer my-token")
                 .ok(res => res.status === 400)
                 .then(res => {
                     expect(res.status).toBe(400)
