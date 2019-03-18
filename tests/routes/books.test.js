@@ -147,6 +147,27 @@ describe('Books', () => {
                     expect(res.status).toBe(400)
                 })
         })
+
+        // alternative method:
+        xtest("fails as there is no such book", done => {
+            const route = "/books/100"
+            request(app)
+                .delete(route)
+                .expect(400, done);
+        });
+
+        xtest('should return 400 if searching according to title is invalid', async() => {
+            const route = "/books/100"
+            try {
+                await request(app)
+                    .get(route)
+                    .set('Accept', 'application/json');
+            } catch (error) {
+                const {response} = error;
+                expect(response.status).toEqual(400);
+            }
+        });
+
     });
 
 });
