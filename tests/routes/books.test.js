@@ -163,7 +163,7 @@ describe('Books', () => {
         test("Create a new book, deny access when no token is given ", () => {
             return request(app)
                 .post(route)
-                .send({title: "New Book"})
+                .send({title: "New Book", author: "New Author"})
                 .ok(res => res.status === 403)
                 .then(res => {
                     expect(res.status).toBe(403)
@@ -174,7 +174,7 @@ describe('Books', () => {
             return request(app)
                 .post(route)
                 .set("Authorization", "Bearer my-invalid-token")
-                .send({title: "New Book"})
+                .send({title: "New Book", author: "New Author"})
                 .ok(res => res.status === 403)
                 .then(res => {
                     expect(res.status).toBe(403)

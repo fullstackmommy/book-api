@@ -104,9 +104,13 @@ router
    .use(verifyToken)
    .route('/:id')
    .put((req, res) => {
-      Book.findByIdAndUpdate(req.params.id, req.body, {
-         new: true
+      return Book.findByIdAndUpdate(req.params.id, req.body, {
+         new: true,
+         runValidators: true
       }, (err, book) => {
+         if (err) {
+            res.sendStatus(400)
+         }
          return res
             .status(202)
             .json(book)
