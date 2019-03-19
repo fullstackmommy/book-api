@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const Book = require('../models/book')
 
 const books = [
    {
@@ -44,6 +45,7 @@ router
    .get((req, res) => {
       if (Object.entries(req.query).length === 0) {
          res.json(books)
+
       } else {
          const keys = Object.keys(req.query)
 
@@ -56,20 +58,22 @@ router
             res.json(filteredBooks)
          }
       }
-
    })
    .post(verifyToken, (req, res) => {
-      const book = req.body
-      book.id = '214214214'
-      books.push(book)
-      res
-         .status(201)
-         .json(req.body)
+      const book = new Book(req.body)
+      book.save((err, book) => {
+         if (err) 
+            return res.status(500).end()
+         else 
+            return res
+               .status(201)
+               .json(book)
+         })
    })
 
 // Protected routes:
-router.use(verifyToken)
 router
+   .use(verifyToken)
    .route('/:id')
    .put((req, res) => {
       const book = books.find(book => book.id === req.params.id)

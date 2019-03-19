@@ -16,10 +16,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "insomnia-plugin-faker": "^1.0.2",
+    "mongoose": "^5.4.19"
   },
   "devDependencies": {
     "jest": "^24.5.0",
+    "mongodb-memory-server": "^4.2.1",
     "supertest": "^4.0.0"
   }
 }

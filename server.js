@@ -1,10 +1,21 @@
 const app = require('./app')
 const port = process.env.PORT || 8080
+const mongoose = require('mongoose')
 
-app.listen(port, () => {
-    if (process.env.NODE_ENV === 'production') {
-        console.log(`Server is running on Heroku with port number ${port}`)
-    } else {
-        console.log(`Server is running on http://localhost:${port}`)
-    }
-})
+mongoose.connect('mongodb://localhost/books-db')
+
+var db = mongoose.connection;
+db.on('error', err => {
+    console.error('Unable to connect to the database', err)
+});
+
+db.once('connected', () => {
+    console.log('Successfully connected to the database')
+    app.listen(port, () => {
+        if (process.env.NODE_ENV === 'production') {
+            console.log(`Server is running on Heroku with port number ${port}`)
+        } else {
+            console.log(`Server is running on http://localhost:${port}`)
+        }
+    })
+});

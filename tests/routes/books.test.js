@@ -1,6 +1,8 @@
 const request = require("supertest")
-const books = require("../../routes/books")
+//const books = require("../../routes/books")
 const app = require("../../app")
+const mongoose = require("mongoose");
+const {MongoMemoryServer} = require("mongodb-memory-server");
 
 const bookData = [
     {
@@ -28,7 +30,25 @@ const bookData = [
 ]
 
 describe('Books', () => {
+    let mongoServer;
+
+    beforeAll(async() => {
+        jest.setTimeout(120000)
+        mongoServer = new MongoMemoryServer();
+        const mongoUri = await mongoServer.getConnectionString()
+
+        await mongoose.connect(mongoUri)
+    })
+
+    afterAll(async() => {
+        mongoose.disconnect()
+        await mongoServer.stop()
+    })
+
     describe('GET', () => {
+
+        //be ae
+
         const route = "/books"
         test("Gets all books", () => {
             return request(app)
@@ -91,14 +111,11 @@ describe('Books', () => {
             return request(app)
                 .post(route)
                 .set("Authorization", "Bearer my-token")
-                .send({title: "New Book"})
+                .send({title: "New Book", author: "QWE"})
                 .expect(201)
                 .then(res => {
                     expect(res.body).toEqual(expect.any(Object))
-                    expect(res.body).toEqual({
-                        id: expect.any(String),
-                        title: "New Book"
-                    })
+                    expect(res.body).toEqual(expect.objectContaining({title: "New Book", author: "QWE"}))
                 })
         })
     })
