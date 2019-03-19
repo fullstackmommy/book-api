@@ -1,6 +1,8 @@
 const request = require("supertest")
 //const books = require("../../routes/books")
 const app = require("../../app")
+
+const Book = require("../../models/book")
 const mongoose = require("mongoose");
 const {MongoMemoryServer} = require("mongodb-memory-server");
 
@@ -31,6 +33,7 @@ const bookData = [
 
 describe('Books', () => {
     let mongoServer;
+    let db
 
     beforeAll(async() => {
         jest.setTimeout(120000)
@@ -38,6 +41,7 @@ describe('Books', () => {
         const mongoUri = await mongoServer.getConnectionString()
 
         await mongoose.connect(mongoUri)
+        db = mongoose.connection
     })
 
     afterAll(async() => {
@@ -45,42 +49,112 @@ describe('Books', () => {
         await mongoServer.stop()
     })
 
-    describe('GET', () => {
+    beforeEach(async() => {
 
-        //be ae
+        await Book.insertMany([
+            {
+                id: "1",
+                title: "ABC",
+                author: "Bob",
+                genre: "Computer",
+                price: 25,
+                quantity: 5
+            }, {
+                id: "2",
+                title: "DEF",
+                author: "John",
+                genre: "Arts",
+                price: 12,
+                quantity: 10
+            }, {
+                id: "3",
+                title: "GHI",
+                author: "Jane",
+                genre: "History",
+                price: 34,
+                quantity: 50
+            }
+        ])
+    })
+
+    afterEach(async() => {
+        await db.dropCollection("books")
+    })
+
+    describe('GET', () => {
 
         const route = "/books"
         test("Gets all books", () => {
+            const expectedBooks = [
+                {
+                    title: "ABC",
+                    author: "Bob"
+                }, {
+                    title: "DEF",
+                    author: "John"
+                }, {
+                    title: "GHI",
+                    author: "Jane"
+                }
+            ]
+
             return request(app)
                 .get(route)
-                .expect(200)
                 .expect("Content-Type", /json/)
-                .expect(bookData)
+                .expect(200)
+                .then(res => {
+                    const books = res.body
+                    expect(books.length).toBe(3)
+                    books.forEach((book, index) => {
+                        // expect(book).toEqual(expect.objectContaining(expectedBooks[index]))
+                        // alternative:
+                        expect(book.title).toBe(expectedBooks[index].title)
+                        expect(book.author).toBe(expectedBooks[index].author)
+                    })
+
+                })
         })
 
         test("Get the books matching the title", () => {
-            const title = "ABC"
-            const foundBook = bookData.filter(book => book.title === title)
 
             return request(app)
                 .get(route)
                 .query({title: "ABC"})
-                .expect(200)
                 .expect("Content-Type", /json/)
-                .expect(foundBook)
+                .expect(200)
+                .then(res => {
+                    const book = res.body[0]
+                    expect(book.title).toEqual("ABC")
+                })
         })
 
         test("Get the books matching the author", () => {
-            const author = "John"
-            const foundBook = bookData.filter(book => book.author === author)
 
             return request(app)
                 .get(route)
                 .query({author: "John"})
-                .expect(200)
                 .expect("Content-Type", /json/)
-                .expect(foundBook)
+                .expect(200)
+                .then(res => {
+                    const book = res.body[0]
+                    expect(book.title).toEqual("DEF")
+                    // const books = res.body books.forEach((book, index) => {
+                    // expect(book).toEqual(expect.objectContaining(expectedBooks[index])) })
+
+                })
         })
+
+        xtest('should return 400 if searching according to title is invalid', async() => {
+            const route = "/books/100"
+            try {
+                await request(app)
+                    .get(route)
+                    .set('Accept', 'application/json');
+            } catch (error) {
+                const {response} = error;
+                expect(response.status).toEqual(400);
+            }
+        });
 
     });
 
@@ -107,29 +181,35 @@ describe('Books', () => {
                 })
         })
 
-        test("Create a new book, grant access with authorization token ", () => {
-            return request(app)
+        test("Create a new book record in the database", async() => {
+            const res = await request(app)
                 .post(route)
                 .set("Authorization", "Bearer my-token")
                 .send({title: "New Book", author: "QWE"})
                 .expect(201)
-                .then(res => {
-                    expect(res.body).toEqual(expect.any(Object))
-                    expect(res.body).toEqual(expect.objectContaining({title: "New Book", author: "QWE"}))
-                })
+
+            expect(res.body.title).toBe("New Book")
+            expect(res.body.author).toBe("QWE")
+
+            const book = await Book.findOne({title: "New Book"})
+            expect(book.title).toBe("New Book")
+            expect(book.author).toBe("QWE")
         })
+
     })
 
     describe("PUT", () => {
 
-        test("Update a book's record based on ID, book is found", () => {
-            const route = "/books/1"
-            return request(app)
+        test("Update a book's record based on ID, book is found", async() => {
+            const {_id} = await Book.findOne({title: "ABC"})
+            const route = `/books/${_id}`
+
+            const res = await request(app)
                 .put(route)
                 .set("Authorization", "Bearer my-token")
-                .send({title: "New Title"})
+                .send({title: "New Title", author: "New Author"})
                 .expect(202)
-                .expect({title: "New Title"})
+            expect(res.body).toEqual(expect.objectContaining({title: "New Title", author: "New Author"}))
         })
 
         test("Update a book's record based on ID, book is not found", () => {
@@ -138,7 +218,6 @@ describe('Books', () => {
                 .put(route)
                 .set("Authorization", "Bearer my-token")
                 .send({title: "New Title"})
-                //.expect(202)
                 .catch(res => {
                     expect(res.status).toBe(400)
                 })
@@ -146,43 +225,37 @@ describe('Books', () => {
 
     })
     describe("DELETE", () => {
-        test("Delete a book's record based on ID", () => {
-            const route = "/books/1"
-            return request(app)
+        test("Delete a book's record based on ID", async() => {
+            const {_id} = await Book.findOne({title: "ABC"})
+            const route = `/books/${_id}`
+
+            await request(app)
                 .delete(route)
                 .set("Authorization", "Bearer my-token")
                 .expect(202)
+
+            const book = await Book.findById(_id)
+            expect(book).toBe(null)
         })
 
         test("Delete a book's record based on ID, record not found", () => {
-            const route = "/books/100"
+            const route = "/books/5c8fb5c41529bf25dcba41a7"
             return request(app)
                 .delete(route)
                 .set("Authorization", "Bearer my-token")
-                .ok(res => res.status === 400)
+                .ok(res => res.status === 404)
                 .then(res => {
-                    expect(res.status).toBe(400)
+                    expect(res.status).toBe(404)
                 })
         })
 
         // alternative method:
-        xtest("fails as there is no such book", done => {
-            const route = "/books/100"
+        test("fails as there is no such book", done => {
+            const route = "/books/5c8fb5c41529bf25dcba41a7"
             request(app)
                 .delete(route)
-                .expect(400, done);
-        });
-
-        xtest('should return 400 if searching according to title is invalid', async() => {
-            const route = "/books/100"
-            try {
-                await request(app)
-                    .get(route)
-                    .set('Accept', 'application/json');
-            } catch (error) {
-                const {response} = error;
-                expect(response.status).toEqual(400);
-            }
+                .set("Authorization", "Bearer my-token")
+                .expect(404, done);
         });
 
     });

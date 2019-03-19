@@ -27,6 +27,10 @@ const books = [
    }
 ]
 
+const filterBooksBy = (property, value) => {
+   return books.filter(b => b[property] === value);
+};
+
 verifyToken = (req, res, next) => {
    const {authorization} = req.headers
    if (!authorization) {
@@ -43,6 +47,30 @@ verifyToken = (req, res, next) => {
 router
    .route('/')
    .get((req, res) => {
+      const {author, title} = req.query;
+
+      if (title) {
+         return Book
+            .find({title})
+            .then(book => {
+               res.json(book)
+            })
+      }
+
+      if (author) {
+         return Book
+            .find({author})
+            .then(book => {
+               res.json(book)
+            })
+      }
+
+      return Book
+         .find()
+         .then(book => {
+            return res.json(book)
+         })
+      /*
       if (Object.entries(req.query).length === 0) {
          res.json(books)
 
@@ -57,7 +85,7 @@ router
             res.status(200)
             res.json(filteredBooks)
          }
-      }
+      }*/
    })
    .post(verifyToken, (req, res) => {
       const book = new Book(req.body)
@@ -76,22 +104,23 @@ router
    .use(verifyToken)
    .route('/:id')
    .put((req, res) => {
-      const book = books.find(book => book.id === req.params.id)
-      if (book) {
-         res
+      Book.findByIdAndUpdate(req.params.id, req.body, {
+         new: true
+      }, (err, book) => {
+         return res
             .status(202)
-            .json(req.body)
-      } else {
-         res.sendStatus(400)
-      }
+            .json(book)
+      })
    })
    .delete((req, res) => {
-      const book = books.find(book => book.id === req.params.id)
-      if (book) {
-         res.sendStatus(202)
-      } else {
-         res.sendStatus(400)
-      }
+      Book.findByIdAndDelete(req.params.id, (err, book) => {
+         if (err) 
+            return res.sendStatus(500)
+         if (!book) {
+            return res.sendStatus(404)
+         }
+         return res.sendStatus(202)
+      })
    })
 
 module.exports = router
