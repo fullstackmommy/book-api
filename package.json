@@ -23,6 +23,7 @@
     "mongoose": "^5.4.19"
   },
   "devDependencies": {
+    "dotenv": "^7.0.0",
     "jest": "^24.5.0",
     "mongodb-memory-server": "^4.2.1",
     "supertest": "^4.0.0"

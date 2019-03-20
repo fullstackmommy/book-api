@@ -1,8 +1,14 @@
 const app = require('./app')
-const port = process.env.PORT || 8080
 const mongoose = require('mongoose')
 
-mongoose.connect('mongodb://localhost/books-db')
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config()
+}
+
+const port = process.env.PORT
+const mongodbUri = process.env.MONGODB_URI
+
+mongoose.connect(mongodbUri)
 
 var db = mongoose.connection;
 db.on('error', err => {
