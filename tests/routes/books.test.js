@@ -40,7 +40,12 @@ describe('Books', () => {
         mongoServer = new MongoMemoryServer();
         const mongoUri = await mongoServer.getConnectionString()
 
-        await mongoose.connect(mongoUri)
+        await mongoose.connect(mongoUri, {
+            useNewUrlParser: true,
+            useFindAndModify: false,
+            useCreateIndex: true
+        });
+
         db = mongoose.connection
     })
 

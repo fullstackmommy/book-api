@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken")
 const express = require('express')
 const router = express.Router()
 
+const User = require('../models/user')
 const secret = "THIS IS SUPER SECRET"
 
 router
@@ -31,6 +32,22 @@ router
     return res
       .status(200)
       .json(userData)
+  })
+
+router
+  .route('/register')
+  .post(async(req, res) => {
+    try {
+      const user = new User(req.body)
+      await User.init()
+      await user.save()
+      res.sendStatus(204)
+    } catch (err) {
+      res
+        .status(400)
+        .json(err)
+    }
+
   })
 
 router.get('/', (req, res) => {
