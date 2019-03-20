@@ -83,7 +83,7 @@ describe('Books', () => {
 
     describe('GET', () => {
 
-        const route = "/books"
+        const route = "/api/v1/books"
         test("Gets all books", () => {
             const expectedBooks = [
                 {
@@ -145,7 +145,7 @@ describe('Books', () => {
         })
 
         xtest('should return 400 if searching according to title is invalid', async() => {
-            const route = "/books/100"
+            const route = "/api/v1/books/100"
             try {
                 await request(app)
                     .get(route)
@@ -159,7 +159,7 @@ describe('Books', () => {
     });
 
     describe('POST', () => {
-        const route = "/books"
+        const route = "/api/v1/books"
         test("Create a new book, deny access when no token is given ", () => {
             return request(app)
                 .post(route)
@@ -202,7 +202,7 @@ describe('Books', () => {
 
         test("Update a book's record based on ID, book is found", async() => {
             const {_id} = await Book.findOne({title: "ABC"})
-            const route = `/books/${_id}`
+            const route = `/api/v1/books/${_id}`
 
             const res = await request(app)
                 .put(route)
@@ -213,7 +213,7 @@ describe('Books', () => {
         })
 
         test("Update a book's record based on ID, book is not found", () => {
-            const route = "/books/100"
+            const route = "/api/v1/books/100"
             return request(app)
                 .put(route)
                 .set("Authorization", "Bearer my-token")
@@ -227,7 +227,7 @@ describe('Books', () => {
     describe("DELETE", () => {
         test("Delete a book's record based on ID", async() => {
             const {_id} = await Book.findOne({title: "ABC"})
-            const route = `/books/${_id}`
+            const route = `/api/v1/books/${_id}`
 
             await request(app)
                 .delete(route)
@@ -239,7 +239,7 @@ describe('Books', () => {
         })
 
         test("Delete a book's record based on ID, record not found", () => {
-            const route = "/books/5c8fb5c41529bf25dcba41a7"
+            const route = "/api/v1/books/5c8fb5c41529bf25dcba41a7"
             return request(app)
                 .delete(route)
                 .set("Authorization", "Bearer my-token")
@@ -251,7 +251,7 @@ describe('Books', () => {
 
         // alternative method:
         test("fails as there is no such book", done => {
-            const route = "/books/5c8fb5c41529bf25dcba41a7"
+            const route = "/api/v1/books/5c8fb5c41529bf25dcba41a7"
             request(app)
                 .delete(route)
                 .set("Authorization", "Bearer my-token")
