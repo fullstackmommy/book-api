@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken")
 const express = require('express')
 const router = express.Router()
+const bcrypt = require('bcrypt')
 
 const User = require('../models/user')
 const secret = "THIS IS SUPER SECRET"
@@ -8,17 +9,39 @@ const secret = "THIS IS SUPER SECRET"
 router
   .route('/token')
   .get(async(req, res) => {
-    const userData = {
-      _id: "123"
-    }
-    const expiresIn24hour = {
-      expiresIn: '24h'
+    // authenticate the user
+    try {
+      const {username, password} = req.body
+      const user = await User.findOne({username})
+
+      if (!user) {
+        throw new Error('You are not authorized')
+      }
+
+      const match = await bcrypt.compare(password, user.password)
+
+      if (!match) {
+        throw new Error('You are not authorized')
+      }
+
+      const userData = {
+        username
+      }
+      const expiresIn24hour = {
+        expiresIn: '24h'
+      }
+
+      const token = await jwt.sign(userData, secret, expiresIn24hour)
+      return res
+        .status(200)
+        .json({token})
+
+    } catch (err) {
+      res
+        .status(401)
+        .send(err.message)
     }
 
-    const token = await jwt.sign(userData, secret, expiresIn24hour)
-    return res
-      .status(200)
-      .json({token})
   })
   .post(async(req, res) => {
     if (!req.headers.authorization) {
@@ -46,6 +69,36 @@ router
       res
         .status(400)
         .json(err)
+    }
+
+  })
+
+router
+  .route('/login')
+  .post(async(req, res) => {
+    try {
+      const {username, password} = req.body
+      const user = await User.findOne({username})
+
+      if (!user) {
+        throw new Error('You are not authorized')
+      }
+
+      const match = await bcrypt.compare(password, user.password)
+
+      if (!match) {
+        throw new Error('You are not authorized')
+      }
+
+      //res.cookie('cookie-monster', 'me love cookies')
+      return res
+        .status(200)
+        .end("You are logged in")
+
+    } catch (err) {
+      res
+        .status(401)
+        .send(err.message)
     }
 
   })

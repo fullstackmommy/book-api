@@ -1,6 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const Book = require('../models/book')
+const User = require('../models/user')
+const jwt = require("jsonwebtoken")
+const secret = "THIS IS SUPER SECRET"
 
 const books = [
    {
@@ -31,16 +34,26 @@ const filterBooksBy = (property, value) => {
    return books.filter(b => b[property] === value);
 };
 
-verifyToken = (req, res, next) => {
-   const {authorization} = req.headers
-   if (!authorization) {
-      res.sendStatus(403)
-   } else {
-      if (authorization === "Bearer my-token") {
-         next()
-      } else {
-         res.sendStatus(403)
+verifyToken = async(req, res, next) => {
+   if (!req.headers.authorization) 
+      return res.sendStatus(403)
+   try {
+      const token = req
+         .headers
+         .authorization
+         .split('Bearer ')[1]
+
+      // return await jwt.verify(token, secret) await jwt.verify(token, secret) return
+      // next()
+      const payload = await jwt.verify(token, secret)
+      if (payload) {
+         return next()
       }
+
+   } catch (err) {
+      res
+         .status(403)
+         .send(err.message)
    }
 }
 

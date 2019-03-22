@@ -6,6 +6,13 @@ const Book = require("../../models/book")
 const mongoose = require("mongoose");
 const {MongoMemoryServer} = require("mongodb-memory-server");
 
+jest.mock("jsonwebtoken")
+const jwt = require("jsonwebtoken")
+
+jest.mock("../../models/user")
+const User = require("../../models/user")
+
+/*
 const bookData = [
     {
         id: "1",
@@ -30,13 +37,14 @@ const bookData = [
         quantity: 50
     }
 ]
+*/
 
 describe('Books', () => {
     let mongoServer;
     let db
 
     beforeAll(async() => {
-        jest.setTimeout(120000)
+        //jest.setTimeout(120000)
         mongoServer = new MongoMemoryServer();
         const mongoUri = await mongoServer.getConnectionString()
 
@@ -149,63 +157,75 @@ describe('Books', () => {
                 })
         })
 
-        xtest('should return 400 if searching according to title is invalid', async() => {
-            const route = "/api/v1/books/100"
-            try {
-                await request(app)
-                    .get(route)
-                    .set('Accept', 'application/json');
-            } catch (error) {
-                const {response} = error;
-                expect(response.status).toEqual(400);
-            }
-        });
-
     });
 
     describe('POST', () => {
+        afterEach(() => {
+            jwt
+                .verify
+                .mockReset()
+        })
         const route = "/api/v1/books"
         test("Create a new book, deny access when no token is given ", () => {
+            jwt
+                .verify
+                .mockRejectedValueOnce({})
             return request(app)
                 .post(route)
                 .send({title: "New Book", author: "New Author"})
-                .ok(res => res.status === 403)
-                .then(res => {
+                .catch(res => {
                     expect(res.status).toBe(403)
                 })
         })
 
-        test("Create a new book, deny access when invalid token is given ", () => {
+        test("Create a new book, deny access when invalid token is given ", (done) => {
+            jwt
+                .verify
+                .mockRejectedValueOnce(new Error('Invalid token given'))
+
             return request(app)
                 .post(route)
                 .set("Authorization", "Bearer my-invalid-token")
                 .send({title: "New Book", author: "New Author"})
+                .expect(403, done)
+            /*
                 .ok(res => res.status === 403)
                 .then(res => {
                     expect(res.status).toBe(403)
-                })
+
+                })*/
         })
 
         test("Create a new book record in the database", async() => {
+            jwt
+                .verify
+                .mockResolvedValueOnce({})
+
             const res = await request(app)
                 .post(route)
                 .set("Authorization", "Bearer my-token")
-                .send({title: "New Book", author: "QWE"})
+                .send({title: "New Book", author: "New Author"})
                 .expect(201)
-
             expect(res.body.title).toBe("New Book")
-            expect(res.body.author).toBe("QWE")
+            expect(res.body.author).toBe("New Author")
 
             const book = await Book.findOne({title: "New Book"})
             expect(book.title).toBe("New Book")
-            expect(book.author).toBe("QWE")
+            expect(book.author).toBe("New Author")
         })
 
     })
 
     describe("PUT", () => {
-
+        afterEach(() => {
+            jwt
+                .verify
+                .mockReset()
+        })
         test("Update a book's record based on ID, book is found", async() => {
+            jwt
+                .verify
+                .mockResolvedValueOnce({})
             const {_id} = await Book.findOne({title: "ABC"})
             const route = `/api/v1/books/${_id}`
 
@@ -218,6 +238,9 @@ describe('Books', () => {
         })
 
         test("Update a book's record based on ID, book is not found", () => {
+            jwt
+                .verify
+                .mockResolvedValueOnce({})
             const route = "/api/v1/books/100"
             return request(app)
                 .put(route)
@@ -230,7 +253,15 @@ describe('Books', () => {
 
     })
     describe("DELETE", () => {
+        afterEach(() => {
+            jwt
+                .verify
+                .mockReset()
+        })
         test("Delete a book's record based on ID", async() => {
+            jwt
+                .verify
+                .mockResolvedValueOnce({})
             const {_id} = await Book.findOne({title: "ABC"})
             const route = `/api/v1/books/${_id}`
 
@@ -244,6 +275,9 @@ describe('Books', () => {
         })
 
         test("Delete a book's record based on ID, record not found", () => {
+            jwt
+                .verify
+                .mockResolvedValueOnce({})
             const route = "/api/v1/books/5c8fb5c41529bf25dcba41a7"
             return request(app)
                 .delete(route)
@@ -256,6 +290,9 @@ describe('Books', () => {
 
         // alternative method:
         test("fails as there is no such book", done => {
+            jwt
+                .verify
+                .mockResolvedValueOnce({})
             const route = "/api/v1/books/5c8fb5c41529bf25dcba41a7"
             request(app)
                 .delete(route)
@@ -264,5 +301,4 @@ describe('Books', () => {
         });
 
     });
-
-});
+})
